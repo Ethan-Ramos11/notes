@@ -281,3 +281,50 @@ export async function searchNotes(
   }
 }
 
+
+export async function getNotesByTitle(
+  userId: string,
+  title: string
+): Promise<NotesListResponse> {
+  try {
+    if (!userId) {
+      return { success: false, error: "User ID is required" };
+    }
+    if (!title?.trim()) {
+      return { success: false, error: "Title is required" };
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", userId)
+      .ilike("title", title.trim());
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const notesInfo = data.map((note) => ({
+      id: note.id,
+      user_id: note.user_id,
+      title: note.title?.trim(),
+      content: note.content?.trim(),
+      created_at: note.created_at,
+      updated_at: note.updated_at,
+    }));
+
+    return {
+      success: true,
+      message: "Notes found",
+      notes: notesInfo,
+      total: notesInfo.length,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : "Failed to fetch notes by title",
+    };
+  }
+}
