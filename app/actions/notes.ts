@@ -5,6 +5,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { redirect } from "next/navigation";
 
 import { NoteResponse, NotesListResponse, NoteDetails } from "@/types/notes";
+import { create } from "domain";
 export async function getNoteById(
   userId: string,
   noteId: string
@@ -99,6 +100,52 @@ export async function getAllNotes(userId: string): Promise<NotesListResponse> {
     return {
       success: false,
       error: errorMsg,
+    };
+  }
+}
+
+export async function createNote(
+  userId: string,
+  noteInfo: NoteDetails
+): Promise<NoteResponse> {
+  try {
+    if (!userId) {
+      return { success: false, error: "User ID is required" };
+    }
+    if (!noteInfo.title?.trim()) {
+      return { success: false, error: "Title is required" };
+    }
+    if (!noteInfo.content?.trim()) {
+      return { success: false, error: "Content is required" };
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .insert({
+        user_id: userId,
+        title: noteInfo.title.trim(),
+        content: noteInfo.content.trim(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    if (!data) {
+      return { success: false, error: "Failed to create note" };
+    }
+
+    return {
+      success: true,
+      message: "Note successfully added",
+      note_details: data,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to create note",
     };
   }
 }
