@@ -194,3 +194,90 @@ export async function updateNote(
   }
 }
 
+export async function deleteNote(
+  userId: string,
+  noteId: string
+): Promise<NoteResponse> {
+  try {
+    if (!userId || !noteId) {
+      return {
+        success: false,
+        error: "User ID and noteId required",
+      };
+    }
+    if (isNaN(Number(noteId))) {
+      return {
+        success: false,
+        error: "Invalid Note ID format",
+      };
+    }
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("notes")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", noteId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return {
+      success: true,
+      message: "Note deleted successfully",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to delete note",
+    };
+  }
+}
+
+export async function searchNotes(
+  userId: string,
+  searchTerm: string
+): Promise<NotesListResponse> {
+  try {
+    if (!userId) {
+      return { success: false, error: "User ID is required" };
+    }
+    if (!searchTerm?.trim()) {
+      return { success: false, error: "Search term is required" };
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", userId)
+      .or(
+        `title.ilike.%${searchTerm.trim()}%,content.ilike.%${searchTerm.trim()}%`
+      );
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const notesInfo = data.map((note) => ({
+      id: note.id,
+      user_id: note.user_id,
+      title: note.title?.trim(),
+      content: note.content?.trim(),
+      created_at: note.created_at,
+      updated_at: note.updated_at,
+    }));
+
+    return {
+      success: true,
+      message: "Notes found",
+      notes: notesInfo,
+      total: notesInfo.length,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to search notes",
+    };
+  }
+}
+
