@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS public.notes (
+  id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
+  user_id UUID NOT NULL,  
+  title VARCHAR(64),
+  content TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT userid_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_notes_user_id ON notes(user_id);
