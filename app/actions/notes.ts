@@ -281,6 +281,54 @@ export async function searchNotes(
   }
 }
 
+export async function getNotesByDate(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<NotesListResponse> {
+  try {
+    if (!userId) {
+      return { success: false, error: "User ID is required" };
+    }
+    if (!startDate || !endDate) {
+      return { success: false, error: "Start and end dates are required" };
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("created_at", startDate)
+      .lte("created_at", endDate);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const notesInfo = data.map((note) => ({
+      id: note.id,
+      user_id: note.user_id,
+      title: note.title?.trim(),
+      content: note.content?.trim(),
+      created_at: note.created_at,
+      updated_at: note.updated_at,
+    }));
+
+    return {
+      success: true,
+      message: "Notes found",
+      total: notesInfo.length,
+      notes: notesInfo,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : "Failed to fetch notes by date",
+    };
+  }
+}
 
 export async function getNotesByTitle(
   userId: string,
