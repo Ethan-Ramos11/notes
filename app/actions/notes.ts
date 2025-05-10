@@ -149,3 +149,48 @@ export async function createNote(
     };
   }
 }
+
+export async function updateNote(
+  userId: string,
+  noteId: string,
+  noteInfo: Partial<NoteDetails>
+): Promise<NoteResponse> {
+  try {
+    if (!userId) {
+      return {
+        success: false,
+        error: "User ID required",
+      };
+    }
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .update({
+        title: noteInfo.title?.trim(),
+        content: noteInfo.content?.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .eq("id", noteId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    if (!data) {
+      return { success: false, error: "Failed to update note" };
+    }
+    return {
+      success: true,
+      message: "Note updated successfully",
+      note_details: data,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to update note",
+    };
+  }
+}
+
