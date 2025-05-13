@@ -1,0 +1,1 @@
+// NoteDetail component placeholder

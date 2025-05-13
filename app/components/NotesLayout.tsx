@@ -1,0 +1,1 @@
+// NotesLayout component placeholder

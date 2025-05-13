@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import NewNoteForm from "./components/NewNoteForm";
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
       <Button asChild size="lg">
         <Link href="/protected">Get Started</Link>
       </Button>
+      <NewNoteForm />
     </div>
   );
 }

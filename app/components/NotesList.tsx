@@ -1,0 +1,1 @@
+// NotesList component placeholder
